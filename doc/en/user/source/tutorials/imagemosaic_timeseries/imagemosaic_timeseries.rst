@@ -14,7 +14,7 @@ This tutorial assumes knowledge of the concepts explained in :ref:`data_imagemos
 This tutorial contains four sections:
 
 * The first section, **Configuration**, describes the configuration files needed to set up an ImageMosaic store from GeoServer.
-* The second section, **Configuration examples**, providing examples of the configuration files needed.
+* The second section, **Configuration examples**, provides examples of the configuration files needed.
 * The last two sections, **Coverage based on filestore** and **Coverage based on database** describe, once the previous configurations steps are done, how to create and configure an ImageMosaic store using the GeoServer GUI.
 
 The dataset used in the tutorial can be downloaded :download:`Here <snowLZWdataset.zip>`. It contains 3 image files and a .sld file representing a style needed for correctly render the images.
@@ -29,12 +29,12 @@ If using a shapefile as the mosaic index store (see next section), another java 
 
 -Dorg.geotools.shapefile.datetime=true
 
-.. note:: Support for timestamp is not part of the DBF standard (used in shapefile for attributes). The DBF standard only supports Date, and only few applications understand it. As long as shapefiles are only used for GeoServer input that is not a problem, but the above setting will cause issues if you have WFS enabled and users also download shapefiles as GetFeature output: if the feature type extracted has timestamps, then the generated shapefile will have as well, making it difficult to use the generated shapefile in desktop applications. As a rule of thumb, if you also need WFS support it is advisable to use an external store (PostGIS, Oracle) instead of shapefile. Of course, if all that's needed is a date, using shapefile as an index without the above property is fine as well.
+.. note:: Support for timestamp is not part of the DBF standard (used in shapefile for attributes). The DBF standard only supports Date, and only few applications understand it. As long as shapefiles are only used for GeoServer input that is not a problem, but the above setting will cause issues if you have WFS enabled and users also download shapefiles as GetFeature output: if the feature type extracted has timestamps, then the generated shapefile will have them as well, making it difficult to use the generated shapefile in desktop applications. As a rule of thumb, if you also need WFS support it is advisable to use an external store (PostGIS, Oracle) instead of a shapefile. Of course, if all that's needed is a date, using shapefile as an index without the above property is fine as well.
 
 In order to load a new CoverageStore from the GeoServer GUI two steps are needed:
 
 1. Create a new directory in which you store all the raster files (the mosaic granules) and three configuration files. This directory represents the **MOSAIC_DIR**.
-2. Install and setup a DBMS instance, this DB is that one where the mosaic indexes will be stored.
+2. Install and setup a DBMS instance. This DB is where the mosaic indexes will be stored.
 
 
 
@@ -43,15 +43,15 @@ MOSAIC_DIR and the Configuration Files
 
 The user can name and place the **MOSAIC_DIR** as and where they want.
 
-The **MOSAIC_DIR** contains all mosaic granules files and the 3 needed configuration files. The files are in ``.properties`` format.
+The **MOSAIC_DIR** contains all mosaic granule files and the 3 needed configuration files. The files are in ``.properties`` format.
 
-.. note:: Every tif file must follow the same naming convention. In this tutorial will be used {coveragename}_{timestamp}.tif
+.. note:: Every granule file must follow the same naming convention. In this tutorial will be used {coveragename}_{timestamp}.tif
 
-In a properties file you specify your properties in a  key-value manner: e.g. `myproperty=myvalue`
+Entries in a ``.properties`` file are specified specify in a key-value manner, e.g. `myproperty=myvalue`
 
 The configuration files needed are:
 
-1. **datastore.properties**: contains all relevant information responsible for connecting to the database in which the spatial indexes of the mosaic will be stored
+1. **datastore.properties**: contains all relevant information for connecting to the database in which the spatial indexes of the mosaic will be stored
 2. **indexer.properties**: specifies the name of the time-variant attribute, the elevation attribute and the type of the attributes
 3. **timeregex.properties**: specifies the regular expression used to extract the time information from the filename.
 
@@ -59,17 +59,16 @@ All the configuration files must be placed in the root of the **MOSAIC_DIR**. Th
 
 Please note that **datastore.properties** isn't mandatory. The plugin provides two possibilities to access to time series data:
 
-* **Using a shapefile** in order to store the granules indexes. That's the default behavior without providing the *datastore.properties* file.
+* **Using a shapefile** in order to store the granule indexes. This is the default behavior without providing the **datastore.properties** file.
 * **Using a DBMS**, which maps the timestamp to the corresponding raster source. The former uses the **time** attribute for access to the granule from the mapping table. 
 
-For production installation is strong recommended the usage of a DBMS instead of shapefile in order to improve performances. 
-
-Otherwise the usage of a shapefile could be useful in development and test environments due to less configurations are needed.
+For production installation it is strongly recommended to use a DBMS instead of shapefile for best performance. 
+However, the usage of a shapefile can be convenient in development and test environments because less configuration is needed.
 
 datastore.properties
 """"""""""""""""""""
 
-Here is shown an example of datastore.properties suitable for Postgis.
+Here is an example of a **datastore.properties** suitable for PostGIS:
 
 .. list-table::
    :widths: 15 20 75
@@ -79,7 +78,7 @@ Here is shown an example of datastore.properties suitable for Postgis.
      - **Description**
    * - *SPI*
      - **Y**
-     - The factory class used for the datastore e.g. org.geotools.data.postgis.PostgisNGDataStoreFactory
+     - The factory class used for the datastore e.g. ``org.geotools.data.postgis.PostgisNGDataStoreFactory``
    * - *host*
      - **Y**
      - The host name of the database.
@@ -112,7 +111,7 @@ Here is shown an example of datastore.properties suitable for Postgis.
      - Specifies the timeout in minutes.    
    * - *preparedStatements*
      - **N** default 'false'
-     - Boolean flag that specifies if for the database queries prepared statements should be used. This improves performance, because the database query parser has to parse the query only once     
+     - Boolean flag that specifies if for the database queries prepared statements should be used. This improves performance, because the database query parser has to parse the query only once.
 
 .. note:: The first 8 parameters are valid for each DBMS used, the last 4 may vary from different DBMS. for more information see `GeoTools JDBC documentation <http://docs.geotools.org/latest/userguide/library/jdbc/index.html>`_
  
@@ -126,18 +125,18 @@ indexer.properties
      - **Description**
    * - *TimeAttribute*
      - N
-     - Specifies the name of the time-variant attribute
+     - Specifies the name of the time attribute.
    * - *ElevationAttribute*
      - N
      - Specifies the name of the elevation attribute.
    * - *Schema*
      - Y
-     - A comma separated sequence that describes the mapping between attribute and the data type.
+     - A comma-separated sequence of ``attribute:type`` pairs specifying the name and type of each attribute.
    * - *PropertyCollectors*
      - Y
      - Specifies the extractor classes.
 
-.. warning:: **TimeAttribute** is not a mandatory param but for the purpose of this tutorial is needed.
+.. warning:: **TimeAttribute** is not a mandatory parameter but for the purpose of this tutorial is needed.
 	 
 timeregex.properties
 """"""""""""""""""""
@@ -155,15 +154,15 @@ After this you can create a new ImageMosaic datastore.
 
 Install and setup a DBMS instance
 `````````````````````````````````
-First of all, note that the usage of a DBMS to store the mosaic indexes **is not mandatory**. If the user does not create a `datastore.properties` file in the MOSAIC_DIR, then the plugin will use a **shapefile**. The shapefile will be created in the MOSAIC_DIR.
+First of all, note that the usage of a DBMS to store the mosaic indexes **is not mandatory**. If the user does not create a `datastore.properties` file in the **MOSAIC_DIR**, then the plugin will use a **shapefile**. The shapefile will be created in the **MOSAIC_DIR**.
 
-Anyway, especially for large dataset, **the usage of a DBMS is strongly recommended**. The ImageMosaic plugin supports all the most used DBMS. 
+However, especially for large datasets, **the usage of a DBMS is strongly recommended**. The ImageMosaic plugin supports all of the most-used DBMS. 
 
-The configuration needed are the basics: create a new empty DB with geospatial extensions, a new schema and configure the user with W/R grants.
+The configuration needed is basic: a new empty DB with geospatial extensions, a new schema, and a user with read/write privileges.
 
-If the user wants to avoid to manually create the DB, it will be automatically generated by the ImageMosaic plugin taking the information defined inside the `datastore.properties` file. 
+If the user wants to avoid to manually creating the DB, it will be automatically generated by the ImageMosaic plugin taking the information defined inside the `datastore.properties` file. 
 
-.. note:: In case of automatic DB creation with PostgreSQL the user must check the PostgreSQL and PostGIS versions: if the first is lower than 9.1 and the second is lower than 2.0, the user have to add the following string of code inside the `datastore.properties` file :
+.. note:: In case of automatic DB creation with PostgreSQL the user must check the PostgreSQL and PostGIS versions: if the first is lower than 9.1 and the second is lower than 2.0, the user will have to add the following string of code inside the `datastore.properties` file :
 
 	.. code-block:: xml
 
@@ -176,19 +175,15 @@ This tutorial shows use of PostgreSQL 9.1 together with PostGIS 2.0.
 Configuration examples
 ---------------------- 
 
-As example is used a set of data that represents hydrological data in a certain area in South Tyrol, a region in northern Italy. The origin data was converted from asc format to TIFF using the GDAL **gdal translate** utility. 
+The example uses a set of hydrological data in a certain area in South Tyrol, a region in northern Italy. The origin data was converted from asc format to TIFF using the GDAL **gdal translate** utility. 
 
-For this running example we will create a layer named snow.
+For this running example we will create a layer named ``snow``.
 
-As mentioned before the files could located in any part of the file system.
-
-In this tutorial the chosen MOSAIC_DIR directory is called ``hydroalp`` and is placed under the root of the GEOSERVER_DATA_DIR.
-
+As mentioned before, the files could located in any part of the file system, but in this tutorial the chosen **MOSAIC_DIR** directory is called ``hydroalp`` and is placed under the root of the GEOSERVER_DATA_DIR.
 
 Configure the MOSAIC_DIR:
 `````````````````````````
-This part showsn an entire MOSAIC_DIR configuration.
-
+This part shows an entire **MOSAIC_DIR** configuration.
 
 datastore.properties:
 """""""""""""""""""""
@@ -216,7 +211,7 @@ In the timeregex property file you specify the pattern describing the date(time)
 
 indexer.properties:
 """""""""""""""""""
-Here the user can specify the information that GeoServer uses to create the index table in the database. In this example, the time values are stored in the column ingestion.
+Here the user can specify the information that GeoServer uses to create the index table in the database. In this example, the time values are stored in the column ``ingestion``.
 
 .. include:: src/indexer.properties
    :literal:
@@ -233,7 +228,7 @@ We create a new data store of type raster data and choose ImageMosaic.
    :align: center
 
 
-.. note:: Be aware that GeoServer creates a table which is identical with the name of your layer. If the table already exists, it will not be dropped from the DB and the following error message will appear. The same message wwill appear if the generated property file already exists in the directory or there are incorrect connection parameters in datastore.properties file.
+.. note:: Be aware that GeoServer creates a database table with the same name as the layer. If the table already exists, it will not be dropped from the DB and the error message shown in the screen capture below will appear. The same message will appear if the generated property file already exists in the directory or there are incorrect connection parameters in ``datastore.properties`` file.
 
 .. figure:: img/errormessage.png
    :align: center
@@ -250,12 +245,12 @@ We specify the directory that contains the property and TIFF files (path must en
    
 Step 3: Set coverage parameters
 ```````````````````````````````
-The relevant parameters are AllowMultithreading and USE_JAI_IMAGEREAD. Do not forget to specify the background value according to your the value in your tif file. If you want to control which granule is displayed when a number of images match the time period specified then set the SORTING parameter to the variable name you want to use for sorting followed by a space and either D or A for descending or ascending. Descending values will mean that the latest image in a series that occurs in the time period requested is shown.
+The relevant parameters are ``AllowMultithreading`` and ``USE_JAI_IMAGEREAD``. Do not forget to specify the background value according to your the value in your tif file. If you want to control which granule is displayed when multiple images match the time period specified then set the ``SORTING`` parameter to the variable name you want to use for sorting followed by a space and either D or A for descending or ascending. Descending values will mean that the latest image in a series that occurs in the time period requested is shown.
 
 .. figure:: img/step_2_1.png
    :align: center
 
-Remember that for display correctly the images contained in the provided dataset a custom style is needed.
+Remember that to correctly display the images contained in the provided dataset, a custom style is needed.
 
 Set as default style the *snow_style.sld* contained in the dataset archive.
 
@@ -314,7 +309,7 @@ Generated property file:
 .. include:: src/snow.properties
    :literal:
 
-.. note:: The parameter **Caching=false** is important to allow the user is to update manually the mosaic, by adding to and removing granules from MOSAIC_DIR and updating the appropriate database entry.
+.. note:: The parameter **Caching=false** is important to allow the user to update manually the mosaic, by adding to and removing granules from MOSAIC_DIR and updating the appropriate database entry.
    
 Generated table:
 """"""""""""""""
@@ -325,13 +320,13 @@ Generated table:
 
 .. note:: The user must create manually the index on the table in order to speed up the search by attribute.
    
-Step 5: query layer on timestamp: 
+Step 5: Query layer on timestamp: 
 `````````````````````````````````
 
 In order to display a snapshot of the map at a specific time instant you have to pass in the request an additional time parameter with a specific notation
 **&time=** < **pattern** > where you pass a value that corresponds to them in the filestore. The only thing is the pattern of the time value is slightly different.
 
-For example if an user wants to obtain the snow coverage images from the months **Oct,Nov,Dec 2009**, pass in each request **&time=2009-10-01**, **&time=2009-11-01** and **&time=2009-12-01**. You can recognize in the three images how the snow coverage changes. Here the color blue means a lot of snow.
+For example, if an user wants to obtain the snow coverage images from the months **Oct,Nov,Dec 2009**, pass in each request **&time=2009-10-01**, **&time=2009-11-01** and **&time=2009-12-01**. You can recognize in the three images how the snow coverage changes. Here the color blue means a lot of snow.
 
 
 .. figure:: img/step_3.png
